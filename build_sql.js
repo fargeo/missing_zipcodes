@@ -1,17 +1,17 @@
-var fs = require('fs');
-var parse = require('csv-parse');
-var _ = require('underscore');
-var mus = require('mustache')
-var zipcodes = [];
-var areas = {};
+const fs = require('fs')
+const parse = require('csv-parse')
+const _ = require('underscore')
+const mus = require('mustache')
+let zipcodes = []
+let areas = {}
 
 fs.createReadStream('./assignments.csv')
 	.pipe(parse({
 		delimiter: ','
 	}))
-	.on('data', function(csvrow) {
+	.on('data', (csvrow) => {
 		if (csvrow[0] === '' || csvrow[0] === 'Area') {
-			return;
+			return
 		}
 		if (!areas.hasOwnProperty(csvrow[0])) {
 			areas[csvrow[0]] = {
@@ -27,17 +27,17 @@ fs.createReadStream('./assignments.csv')
 		}
 		areas[csvrow[0]].zipcodes.push(csvrow[2])
 	})
-	.on('end', function() {
+	.on('end', () => {
 		fs.createReadStream('./backup_assignments.csv')
 			.pipe(parse({
 				delimiter: ','
 			}))
-			.on('data', function(csvrow) {
+			.on('data', (csvrow) => {
 				if (csvrow[0] === '' || csvrow[0] === 'Supervisor' || !areas[csvrow[1]]) {
-					return;
+					return
 				}
 				if (csvrow[2] != '' && areas[csvrow[1]].inspectors.length > 0) {
-					areas[csvrow[1]].inspectors[0].num = csvrow[2];
+					areas[csvrow[1]].inspectors[0].num = csvrow[2]
 				}
 				if (csvrow[4]) {
 					areas[csvrow[1]].inspectors.push({
@@ -58,43 +58,42 @@ fs.createReadStream('./assignments.csv')
 					})
 				}
 			})
-			.on('end', function() {
+			.on('end', () => {
 				fs.createReadStream('./missing_zipcodes.csv')
 					.pipe(parse({
 						delimiter: ','
 					}))
-					.on('data', function(csvrow) {
+					.on('data', (csvrow) => {
 						if (csvrow[0] === 'ZipCode' || csvrow[1] === '') {
-							return;
+							return
 						}
 						zipcodes.push({
 							ZipCode: csvrow[0],
 							WKT: csvrow[1]
 						})
 					})
-					.on('end', function() {
+					.on('end', () => {
 						fs.readFile('./template.sql', (err, tpl) => {
 							if (err) throw err
-							areas = _.map(areas, function(v, k) {
-								v.zipcodes = _.map(_.unique(v.zipcodes), function(val) {
+							areas = _.map(areas, (v, k) => {
+								v.zipcodes = _.map(_.unique(v.zipcodes), (val) => {
 									return {
 										areaName: k,
 										zip: val
-									};
-								});
-								v.areaName = k;
-								return v;
-							});
-							var content = mus.render(tpl.toString('utf8'), {
+									}
+								})
+								v.areaName = k
+								return v
+							})
+							let content = mus.render(tpl.toString('utf8'), {
 								zipcodes: zipcodes,
 								areas: areas
-							});
+							})
 
-							fs.writeFile("./output.sql", content, function(err) {
+							fs.writeFile("./output.sql", content, (err) => {
 								if (err) throw err
-							});
+							})
 						})
-					});
-			});
-
-	});
+					})
+			})
+	})
