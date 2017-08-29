@@ -59,12 +59,12 @@ fs.createReadStream('./assignments.csv')
 				}
 			})
 			.on('end', function() {
-				fs.createReadStream('./new_zipcodes.csv')
+				fs.createReadStream('./missing_zipcodes.csv')
 					.pipe(parse({
 						delimiter: ','
 					}))
 					.on('data', function(csvrow) {
-						if (csvrow[0] === 'ZipCode') {
+						if (csvrow[0] === 'ZipCode' || csvrow[1] === '') {
 							return;
 						}
 						zipcodes.push({
