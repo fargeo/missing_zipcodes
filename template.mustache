@@ -1,4 +1,4 @@
-{{#zipcodes}}
+{{#newZipcodes}}
 insert into [dbo].[GeoVector]
            ([Name]
            ,[Label]
@@ -16,7 +16,27 @@ insert into [dbo].[GeoVector]
            ,geometry::STGeomFromText('{{WKT}}', 3310)
            ,'{{ZipCode}}');
 
-{{/zipcodes}}
+{{/newZipcodes}}
+
+{{#copiedZipcodes}}
+insert into [dbo].[GeoVector]
+           ([Name]
+           ,[Label]
+           ,[GeoVectorCategoryType_ID]
+           ,[GeoVectorType_ID]
+           ,[GeoVectorSubType_ID]
+           ,[GeoValue]
+           ,[Description])
+     values
+           ('ZipCode Boundary'
+           ,'{{ZipCode}}'
+		   , NULL
+		   , NULL
+		   , NULL
+           ,(select [GeoValue] from [dbo].[GeoVector] where [GeoVector_ID] = {{GeoVector_ID}})
+           ,'{{ZipCode}}');
+
+{{/copiedZipcodes}}
 
 {{#areas}}
 insert into [dbo].[Area]
@@ -26,7 +46,7 @@ insert into [dbo].[Area]
         (select [GenericLookup_ID] from [dbo].[GenericLookup] where type ='InspectorGroupType' and DisplayValue = '{{type}}')
         ,'{{areaName}}'
     );
-       
+
 {{#zipcodes}}
 insert into [dbo].[AreaZipCode]
         ([Area_ID]
@@ -35,7 +55,7 @@ insert into [dbo].[AreaZipCode]
         (select [Area_ID] from [dbo].[Area] where [AreaName] = '{{areaName}}')
         ,(select [GeoVector_ID] from [dbo].[GeoVector] where [Name] = 'ZipCode Boundary' and [Label] = '{{zip}}')
     );
-           
+
 {{/zipcodes}}
 {{#inspectors}}
 insert into [dbo].[AreaInspector]

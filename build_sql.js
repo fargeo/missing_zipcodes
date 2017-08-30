@@ -81,12 +81,13 @@ const getZipCodeData = () => {
 }
 
 const prepZipCode = (zipCodeRow) => {
-	if (zipCodeRow[0] === 'ZipCode' || zipCodeRow[1] === '') {
+	if (zipCodeRow[0] === 'ZipCode' || zipCodeRow[3] === '') {
 		return
 	}
 	zipcodes.push({
 		ZipCode: zipCodeRow[0],
-		WKT: zipCodeRow[1]
+		WKT: zipCodeRow[3],
+        GeoVector_ID: zipCodeRow[2]
 	})
 }
 
@@ -95,7 +96,12 @@ const writeSQLFile = () => {
 		if (err) throw err
 
 		content = mus.render(tpl.toString('utf8'), {
-			zipcodes: zipcodes,
+			newZipcodes: _.filter(zipcodes, function(zipcode) {
+                return zipcode.GeoVector_ID === '';
+            }),
+            copiedZipcodes: _.filter(zipcodes, function(zipcode) {
+                return zipcode.GeoVector_ID !== '';
+            }),
 			areas: _.map(areas, (v, k) => {
 				v.zipcodes = _.map(_.unique(v.zipcodes), (val) => {
 					return {
