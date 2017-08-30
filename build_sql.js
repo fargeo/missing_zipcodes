@@ -91,21 +91,21 @@ const prepZipCode = (zipCodeRow) => {
 }
 
 const writeSQLFile = () => {
-	fs.readFile('./template.sql', (err, tpl) => {
+	fs.readFile('./template.mustache', (err, tpl) => {
 		if (err) throw err
-		areas = _.map(areas, (v, k) => {
-			v.zipcodes = _.map(_.unique(v.zipcodes), (val) => {
-				return {
-					areaName: k,
-					zip: val
-				}
-			})
-			v.areaName = k
-			return v
-		})
+
 		content = mus.render(tpl.toString('utf8'), {
 			zipcodes: zipcodes,
-			areas: areas
+			areas: _.map(areas, (v, k) => {
+				v.zipcodes = _.map(_.unique(v.zipcodes), (val) => {
+					return {
+						areaName: k,
+						zip: val
+					}
+				})
+				v.areaName = k
+				return v
+			})
 		})
 
 		fs.writeFile("./output.sql", content, (err) => {
